@@ -2,7 +2,21 @@
 import type { GetStaticProps,  NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
+import { PostView } from "~/components/postview";
 
+const ProfileFeed = (props: {userId: string}) => {
+  const {data, isLoading} = api.posts.getPostsByUserId.useQuery({userId: props.userId})
+
+  if (isLoading) return <LoadingPage />
+
+  if (!data || data.length === 0) return <div>User has not posted</div>
+
+  return <div className="flex flex-col">
+    {data.map(post => (
+      <PostView post={post} key={post.id}/>
+    ))}
+  </div>
+}
 
 const ProfilePage: NextPage<{ username: string}> = ({username}) => {
 
@@ -45,6 +59,8 @@ import superjson from "superjson"
 import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 import { PageLoyout } from "~/components/layout";
 import Image from "next/image";
+import { LoadingPage } from "~/components/Loading";
+
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = generateSSGHelper();
