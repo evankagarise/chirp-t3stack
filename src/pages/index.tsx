@@ -9,18 +9,19 @@ dayjs.extend(relativeTime);
 
 import { api, RouterOutputs } from "~/utils/api";
 import Image from "next/image";
+import { LoadingPage } from "~/components/Loading";
 
 const CreatePostWizard = () => {
-  const {user} = useUser();
+  const { user } = useUser();
 
   if (!user) return null;
 
 
-  return( <div className="flex gap-3 w-full">
-    <Image 
-    width={56} height={56} src={user.profileImageUrl} alt="Profile Image" className="w-14 h-14 rounded-full" />
+  return (<div className="flex gap-3 w-full">
+    <Image
+      width={56} height={56} src={user.profileImageUrl} alt="Profile Image" className="w-14 h-14 rounded-full" />
 
-<input placeholder="Type some emojis" className="bg-transparent grow outline-none" />
+    <input placeholder="Type some emojis" className="bg-transparent grow outline-none" />
   </div>)
 }
 
@@ -28,28 +29,51 @@ const CreatePostWizard = () => {
 type PostWithUser = RouterOutputs["posts"]["getAll"][number]
 
 const PostView = (props: PostWithUser) => {
-  const {post, author} = props;
-return (
-  <div className=" border-b border-slate-400 flex p-4 gap-3   " key={post.id}>
-    <Image src={author.profilePicture} alt="Profile Image" width={56} height={56} className="w-14 h-14 rounded-full "  />
-    <div className="flex flex-col text-slate-200">
-      <div><span>{`@${author.username}`}</span> · <span>{`${dayjs(post.createdAt).fromNow()}`}</span></div>
-      <span>{post.content}</span> 
+  const { post, author } = props;
+  return (
+    <div className=" border-b border-slate-400 flex p-4 gap-3   " key={post.id}>
+      <Image src={author.profilePicture} alt="Profile Image" width={56} height={56} className="w-14 h-14 rounded-full " />
+      <div className="flex flex-col text-slate-200">
+        <div><span>{`@${author.username}`}</span> · <span>{`${dayjs(post.createdAt).fromNow()}`}</span></div>
+        <span>{post.content}</span>
+      </div>
+
     </div>
-   
-    </div>
-)
+  )
 }
+const Feed = () => {
+  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
 
+  if (postsLoading)
+    return (
+      <div className="flex grow">
+        <LoadingPage />
+      </div>
+    );
+
+  if (!data) return <div>Something went wrong</div>;
+
+  return (
+    <div className="flex grow flex-col overflow-y-scroll">
+      {[...data, ...data, ...data, ...data].map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
 const Home: NextPage = () => {
-  const {data, isLoading} = api.posts.getAll.useQuery();
 
-  const user = useUser()
+const {isLoaded: userLoaded, isSignedIn} = useUser()
+  api.posts.getAll.useQuery();
 
-  console.log(user)
-  if (isLoading) return <div>Loading...</div>
+  
 
-  if (!data) return <div>Something went wrong</div>
+  if (!userLoaded) return <div />;
+
+  
+ 
+
+
   return (
     <>
       <Head>
@@ -59,17 +83,13 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex justify-center h-screen">
         <div className=" h-full w-full md:max-w-2xl border-x border-slate-400">
-           <div className="border-b border-slate-400 p-4 ">
-      {!user.isSignedIn && <SignInButton   />}{user.isSignedIn && <CreatePostWizard />}
-      
-     </div>
-     <div   >
-      {[...data, ...data]?.map((fullPost) => (
-      <PostView  {...fullPost} key={fullPost.post.id} />
-      ))}
-     </div>
+          <div className="border-b border-slate-400 p-4 ">
+            {!isSignedIn && <SignInButton />}{isSignedIn && <CreatePostWizard />}
+
+          </div>
+          <Feed />
         </div>
-    
+
 
       </main>
     </>
