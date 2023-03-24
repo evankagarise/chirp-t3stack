@@ -35,7 +35,7 @@ const PostView = (props: PostWithUser) => {
       <Image src={author.profilePicture} alt="Profile Image" width={56} height={56} className="w-14 h-14 rounded-full " />
       <div className="flex flex-col text-slate-200">
         <div><span>{`@${author.username}`}</span> · <span>{`${dayjs(post.createdAt).fromNow()}`}</span></div>
-        <span>{post.content}</span>
+        <span className="text-xl">{post.content}</span>
       </div>
 
     </div>
@@ -55,7 +55,7 @@ const Feed = () => {
 
   return (
     <div className="flex grow flex-col overflow-y-scroll">
-      {[...data, ...data, ...data, ...data].map((fullPost) => (
+      {[...data, ...data].map((fullPost) => (
         <PostView {...fullPost} key={fullPost.post.id} />
       ))}
     </div>
